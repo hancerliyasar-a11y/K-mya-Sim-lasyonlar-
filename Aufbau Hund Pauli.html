@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atom Orbitalleri ve Elektron Dizilimi - Simülasyon</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --card-bg: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-purple: #c084fc;
+            --accent-red: #f43f5e;
+            --accent-amber: #f59e0b;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px 12px;
+        }
+
+        header {
+            text-align: center;
+            flex-shrink: 0;
+            margin-bottom: 2px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: var(--accent-blue);
+            letter-spacing: -0.3px;
+        }
+
+        p.subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr 280px;
+            gap: 10px;
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+            }
+            html, body {
+                overflow: auto;
+            }
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, button {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        select:hover, button:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .btn-full {
+            grid-column: span 2;
+        }
+
+        .btn-success { background: #16a34a; color: white; border: none; padding: 6px; font-size: 0.8rem; }
+        .btn-success:hover { background: #15803d; }
+        .btn-danger { background: #e11d48; color: white; border: none; padding: 6px; font-size: 0.8rem; }
+        .btn-danger:hover { background: #be123c; }
+
+        .element-card {
+            background: var(--card-bg);
+            border-radius: 6px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .element-symbol {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .element-info {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.78rem;
+        }
+
+        .element-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .element-meta {
+            color: var(--text-muted);
+        }
+
+        .config-box {
+            background: var(--card-bg);
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.82rem;
+            color: var(--accent-blue);
+            word-break: break-all;
+            min-height: 28px;
+            line-height: 1.2;
+        }
+
+        .dock-container {
+            background: var(--card-bg);
+            border-radius: 6px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .tokens-wrapper {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .electron-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            opacity: 0.6;
+        }
+
+        .electron-btn.active {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--accent-blue);
+        }
+
+        .electron-btn.up {
+            background: rgba(34, 197, 94, 0.15);
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .electron-btn.down {
+            background: rgba(245, 158, 11, 0.15);
+            border: 2px solid var(--accent-amber);
+            color: var(--accent-amber);
+        }
+
+        .simulation-canvas {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .energy-axis {
+            width: 28px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            position: relative;
+        }
+
+        .axis-line {
+            width: 3px;
+            height: 85%;
+            background: linear-gradient(to top, var(--accent-blue), var(--accent-red));
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .axis-arrow {
+            position: absolute;
+            top: -6px;
+            left: -4px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 9px solid var(--accent-red);
+        }
+
+        .axis-label {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .vertical-orbitals {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 4px;
+            justify-content: space-evenly;
+            min-height: 0;
+        }
+
+        .orbital-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .orbital-row.has-error {
+            border-color: var(--accent-red);
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .subshell-label {
+            width: 28px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--accent-purple);
+        }
+
+        .boxes-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .orbital-box {
+            width: 38px;
+            height: 38px;
+            border: 2px dashed #475569;
+            border-radius: 6px;
+            background: #090d16;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .orbital-box:hover {
+            border-color: var(--accent-blue);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .orbital-box.occupied {
+            border-style: solid;
+            border-color: #64748b;
+        }
+
+        .orbital-box.box-error {
+            border-color: var(--accent-red);
+            background: rgba(244, 63, 94, 0.2);
+        }
+
+        .placed-electron {
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .placed-electron.up { color: var(--accent-green); }
+        .placed-electron.down { color: var(--accent-amber); }
+
+        .rule-card {
+            background: var(--card-bg);
+            border-radius: 6px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .rule-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .rule-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rule-badge {
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-valid { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-invalid { background: rgba(244, 63, 94, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+        .rule-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.25;
+            margin: 0;
+        }
+
+        .feedback-toast {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 0.76rem;
+            line-height: 1.3;
+            color: #e2e8f0;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+
+        .feedback-toast.error {
+            border-color: var(--accent-red);
+            background: rgba(136, 19, 55, 0.4);
+            color: #fecdd3;
+        }
+
+        .instruction-note {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Atom Orbitalleri ve Elektron Dizilimi</h1>
+        <p class="subtitle">Aufbau, Hund ve Pauli Kuralları Simülasyonu</p>
+    </header>
+
+    <div class="main-layout">
+        <!-- LEFT PANEL: Controls & Dock -->
+        <div class="panel">
+            <div class="control-group">
+                <label for="elementSelect">Hedef Element Seçimi</label>
+                <select id="elementSelect"></select>
+            </div>
+
+            <div class="element-card">
+                <div class="element-symbol" id="symbolBadge">H</div>
+                <div class="element-info">
+                    <span class="element-name" id="elementName">Hidrojen</span>
+                    <span class="element-meta">Z: <strong id="atomicNumber">1</strong> | Elektron: <strong id="currentElectronCount">0</strong>/<span id="targetElectronCount">1</span></span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Elektron Konfigürasyonu</label>
+                <div class="config-box" id="configDisplay">Boş</div>
+            </div>
+
+            <div class="dock-container">
+                <label style="margin: 0;">Elektron Modu (Tıkla Seç)</label>
+                <div class="tokens-wrapper">
+                    <div class="electron-btn up active" id="tokenUp" data-spin="1" title="Yukarı Spin Seç">&#8593;</div>
+                    <div class="electron-btn down" id="tokenDown" data-spin="-1" title="Aşağı Spin Seç">&#8595;</div>
+                </div>
+                <span class="instruction-note">Önce yukarı/aşağı seçin, ardından orbital kutusuna tıklayın. Aynı kutuya aynı yönlü 2 tane ekleyerek Pauli ihlali oluşturabilirsiniz!</span>
+            </div>
+
+            <div class="btn-group">
+                <button id="autoFillBtn" class="btn-success btn-full">Doğru Doldur (Çözüm)</button>
+                <button id="resetBtn" class="btn-danger btn-full">Temizle</button>
+            </div>
+        </div>
+
+        <!-- MIDDLE PANEL: Vertical Energy Diagram -->
+        <div class="simulation-canvas">
+            <div class="energy-axis">
+                <div class="axis-line">
+                    <div class="axis-arrow"></div>
+                </div>
+                <div class="axis-label">ENERJİ</div>
+            </div>
+
+            <div class="vertical-orbitals" id="verticalOrbitals">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Rules and Feedback -->
+        <div class="panel">
+            <label>Canlı Kural Analitiği</label>
+            <div class="feedback-toast" id="feedbackToast">
+                Önce spin türünü seçip ardından alt orbitallerden başlayarak kutulara tıklayabilirsiniz.
+            </div>
+
+            <div class="rule-card" id="cardAufbau">
+                <div class="rule-card-header">
+                    <span class="rule-title">🔵 Aufbau İlkesi</span>
+                    <span class="rule-badge badge-valid" id="badgeAufbau">UYGUN</span>
+                </div>
+                <p class="rule-desc">Elektronlar önce en düşük enerjili boş orbitalden doldurulur.</p>
+            </div>
+
+            <div class="rule-card" id="cardPauli">
+                <div class="rule-card-header">
+                    <span class="rule-title">🟣 Pauli İlkesi</span>
+                    <span class="rule-badge badge-valid" id="badgePauli">UYGUN</span>
+                </div>
+                <p class="rule-desc">Bir kutuya en fazla 2 zıt spinli (&uarr;&darr;) elektron sığabilir.</p>
+            </div>
+
+            <div class="rule-card" id="cardHund">
+                <div class="rule-card-header">
+                    <span class="rule-title">🟢 Hund Kuralı</span>
+                    <span class="rule-badge badge-valid" id="badgeHund">UYGUN</span>
+                </div>
+                <p class="rule-desc">Eş enerjili orbitallere önce tek tek ve aynı yönlü yerleşirler.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ELEMENTS = [
+            { z: 1, symbol: "H", name: "Hidrojen" },
+            { z: 2, symbol: "He", name: "Helyum" },
+            { z: 3, symbol: "Li", name: "Lityum" },
+            { z: 4, symbol: "Be", name: "Berilyum" },
+            { z: 5, symbol: "B", name: "Bor" },
+            { z: 6, symbol: "C", name: "Karbon" },
+            { z: 7, symbol: "N", name: "Azot" },
+            { z: 8, symbol: "O", name: "Oksijen" },
+            { z: 9, symbol: "F", name: "Flor" },
+            { z: 10, symbol: "Ne", name: "Neon" },
+            { z: 11, symbol: "Na", name: "Sodyum" },
+            { z: 12, symbol: "Mg", name: "Magnezyum" },
+            { z: 13, symbol: "Al", name: "Alüminyum" },
+            { z: 14, symbol: "Si", name: "Silisyum" },
+            { z: 15, symbol: "P", name: "Fosfor" },
+            { z: 16, symbol: "S", name: "Kükürt" },
+            { z: 17, symbol: "Cl", name: "Klor" },
+            { z: 18, symbol: "Ar", name: "Argon" },
+            { z: 19, symbol: "K", name: "Potasyum" },
+            { z: 20, symbol: "Ca", name: "Kalsiyum" },
+            { z: 21, symbol: "Sc", name: "Skandiyum" },
+            { z: 22, symbol: "Ti", name: "Titanyum" },
+            { z: 23, symbol: "V", name: "Vanadyum" },
+            { z: 24, symbol: "Cr", name: "Krom" },
+            { z: 25, symbol: "Mn", name: "Mangan" },
+            { z: 26, symbol: "Fe", name: "Demir" },
+            { z: 27, symbol: "Co", name: "Kobalt" },
+            { z: 28, symbol: "Ni", name: "Nikel" },
+            { z: 29, symbol: "Cu", name: "Bakır" },
+            { z: 30, symbol: "Zn", name: "Çinko" }
+        ];
+
+        const SUBSHELLS = [
+            { name: "1s", energyIndex: 0, capacity: 2, boxes: 1 },
+            { name: "2s", energyIndex: 1, capacity: 2, boxes: 1 },
+            { name: "2p", energyIndex: 2, capacity: 6, boxes: 3 },
+            { name: "3s", energyIndex: 3, capacity: 2, boxes: 1 },
+            { name: "3p", energyIndex: 4, capacity: 6, boxes: 3 },
+            { name: "4s", energyIndex: 5, capacity: 2, boxes: 1 },
+            { name: "3d", energyIndex: 6, capacity: 10, boxes: 5 }
+        ];
+
+        let orbitalState = {};
+        SUBSHELLS.forEach(sub => {
+            orbitalState[sub.name] = Array.from({ length: sub.boxes }, () => []);
+        });
+
+        let targetZ = 1;
+        let selectedSpin = 1; // 1: Yukarı (↑), -1: Aşağı (↓)
+
+        const elementSelect = document.getElementById('elementSelect');
+        const symbolBadge = document.getElementById('symbolBadge');
+        const elementName = document.getElementById('elementName');
+        const atomicNumber = document.getElementById('atomicNumber');
+        const targetElectronCount = document.getElementById('targetElectronCount');
+        const currentElectronCount = document.getElementById('currentElectronCount');
+        const configDisplay = document.getElementById('configDisplay');
+        const verticalOrbitals = document.getElementById('verticalOrbitals');
+        const feedbackToast = document.getElementById('feedbackToast');
+
+        const cardAufbau = document.getElementById('cardAufbau');
+        const cardPauli = document.getElementById('cardPauli');
+        const cardHund = document.getElementById('cardHund');
+
+        const badgeAufbau = document.getElementById('badgeAufbau');
+        const badgePauli = document.getElementById('badgePauli');
+        const badgeHund = document.getElementById('badgeHund');
+
+        function initApp() {
+            ELEMENTS.forEach(el => {
+                const opt = document.createElement('option');
+                opt.value = el.z;
+                opt.textContent = `${el.z}. ${el.name} (${el.symbol})`;
+                elementSelect.appendChild(opt);
+            });
+
+            verticalOrbitals.innerHTML = '';
+            SUBSHELLS.forEach(sub => {
+                const row = document.createElement('div');
+                row.className = 'orbital-row';
+                row.dataset.subshell = sub.name;
+
+                const label = document.createElement('div');
+                label.className = 'subshell-label';
+                label.textContent = sub.name;
+
+                const boxesGroup = document.createElement('div');
+                boxesGroup.className = 'boxes-group';
+
+                for (let i = 0; i < sub.boxes; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'orbital-box';
+                    box.dataset.subshell = sub.name;
+                    box.dataset.boxIndex = i;
+
+                    box.addEventListener('click', () => handleBoxClick(sub.name, i));
+                    boxesGroup.appendChild(box);
+                }
+
+                row.appendChild(label);
+                row.appendChild(boxesGroup);
+                verticalOrbitals.appendChild(row);
+            });
+
+            setupSpinSelectors();
+            selectElement(1);
+        }
+
+        function setupSpinSelectors() {
+            const tokenUp = document.getElementById('tokenUp');
+            const tokenDown = document.getElementById('tokenDown');
+
+            tokenUp.addEventListener('click', () => {
+                selectedSpin = 1;
+                tokenUp.classList.add('active');
+                tokenDown.classList.remove('active');
+            });
+
+            tokenDown.addEventListener('click', () => {
+                selectedSpin = -1;
+                tokenDown.classList.add('active');
+                tokenUp.classList.remove('active');
+            });
+        }
+
+        function handleBoxClick(subshellName, boxIndex) {
+            const boxSpins = orbitalState[subshellName][boxIndex];
+
+            // Güncelleme: Aynı kutuya en fazla 2 elektron eklenmesine izin verilir (aynı yönlü de olsa). 
+            // 2 elektron varsa ve tekrar tıklanırsa kutu tamamen temizlenir veya sıradaki ekleme yapılır.
+            if (boxSpins.length < 2) {
+                boxSpins.push(selectedSpin);
+            } else {
+                boxSpins.length = 0; // Dolu kutuya tıklayınca sıfırla ki yeniden deneyebilesin
+            }
+
+            renderState();
+            evaluateRules();
+        }
+
+        function renderState() {
+            let totalElectrons = 0;
+            let configParts = [];
+
+            SUBSHELLS.forEach(sub => {
+                const subState = orbitalState[sub.name];
+                let subTotal = 0;
+
+                subState.forEach((boxSpins, bIdx) => {
+                    totalElectrons += boxSpins.length;
+                    subTotal += boxSpins.length;
+
+                    const boxEl = document.querySelector(`.orbital-box[data-subshell="${sub.name}"][data-box-index="${bIdx}"]`);
+                    boxEl.innerHTML = '';
+                    boxEl.classList.remove('occupied');
+
+                    if (boxSpins.length > 0) {
+                        boxEl.classList.add('occupied');
+                    }
+
+                    boxSpins.forEach(spin => {
+                        const span = document.createElement('span');
+                        span.className = `placed-electron ${spin === 1 ? 'up' : 'down'}`;
+                        span.innerHTML = spin === 1 ? '&#8593;' : '&#8595;';
+                        boxEl.appendChild(span);
+                    });
+                });
+
+                if (subTotal > 0) {
+                    configParts.push(`${sub.name}<sup>${subTotal}</sup>`);
+                }
+            });
+
+            currentElectronCount.textContent = totalElectrons;
+            configDisplay.innerHTML = configParts.length > 0 ? configParts.join(' ') : 'Boş';
+        }
+
+        function evaluateRules() {
+            let aufbauValid = true;
+            let pauliValid = true;
+            let hundValid = true;
+
+            let aufbauErrors = [];
+            let pauliErrors = [];
+            let hundErrors = [];
+
+            document.querySelectorAll('.orbital-row').forEach(r => r.classList.remove('has-error'));
+            document.querySelectorAll('.orbital-box').forEach(b => b.classList.remove('box-error'));
+
+            SUBSHELLS.forEach(sub => {
+                orbitalState[sub.name].forEach((spins, boxIdx) => {
+                    if (spins.length > 2) {
+                        pauliValid = false;
+                        pauliErrors.push(`${sub.name} kutusuna 2'den fazla elektron konulamaz!`);
+                        markBoxError(sub.name, boxIdx);
+                    } else if (spins.length === 2 && spins[0] === spins[1]) {
+                        pauliValid = false;
+                        pauliErrors.push(`Pauli İhlali: Aynı kutuya aynı yönlü (${spins[0] === 1 ? '↑↑' : '↓↓'}) iki elektron konulamaz! Zıt spinli olmalıdır.`);
+                        markBoxError(sub.name, boxIdx);
+                    }
+                });
+            });
+
+            let foundUnfilledLower = false;
+            let lowerSubshellName = "";
+
+            for (let sub of SUBSHELLS) {
+                const boxes = orbitalState[sub.name];
+                const totalInSub = boxes.reduce((acc, b) => acc + b.length, 0);
+
+                if (foundUnfilledLower && totalInSub > 0) {
+                    aufbauValid = false;
+                    aufbauErrors.push(`${lowerSubshellName} dolmadan ${sub.name} doldurulamaz!`);
+                    markRowError(sub.name);
+                }
+
+                if (totalInSub < sub.capacity) {
+                    foundUnfilledLower = true;
+                    lowerSubshellName = sub.name;
+                }
+            }
+
+            SUBSHELLS.forEach(sub => {
+                if (sub.boxes > 1) {
+                    const boxes = orbitalState[sub.name];
+                    const countPerBox = boxes.map(b => b.length);
+                    const hasEmptyBox = countPerBox.some(c => c === 0);
+                    const hasPairedBox = countPerBox.some(c => c === 2);
+
+                    if (hasEmptyBox && hasPairedBox) {
+                        hundValid = false;
+                        hundErrors.push(`${sub.name} kutularına önce tek tek elektron yerleşmelidir!`);
+                        markRowError(sub.name);
+                    }
+
+                    const singleSpins = boxes.filter(b => b.length === 1).map(b => b[0]);
+                    if (singleSpins.length > 1) {
+                        const firstSpin = singleSpins[0];
+                        const allParallel = singleSpins.every(s => s === firstSpin);
+                        if (!allParallel) {
+                            hundValid = false;
+                            hundErrors.push(`${sub.name} tekli elektronları aynı yönlü spinli olmalıdır!`);
+                            markRowError(sub.name);
+                        }
+                    }
+                }
+            });
+
+            updateRuleBadge(badgePauli, cardPauli, pauliValid);
+            updateRuleBadge(badgeAufbau, cardAufbau, aufbauValid);
+            updateRuleBadge(badgeHund, cardHund, hundValid);
+
+            if (!pauliValid) showToast(pauliErrors[0], true);
+            else if (!aufbauValid) showToast(aufbauErrors[0], true);
+            else if (!hundValid) showToast(hundErrors[0], true);
+            else {
+                const curTotal = parseInt(currentElectronCount.textContent);
+                if (curTotal === targetZ) {
+                    showToast(`Tebrikler! ${ELEMENTS[targetZ-1].name} atomu doğru tamamlandı!`, false);
+                } else {
+                    showToast(`Kurallar uygun. Toplam ${curTotal} / ${targetZ} elektron.`, false);
+                }
+            }
+        }
+
+        function markRowError(subName) {
+            const row = document.querySelector(`.orbital-row[data-subshell="${subName}"]`);
+            if (row) row.classList.add('has-error');
+        }
+
+        function markBoxError(subName, boxIdx) {
+            const box = document.querySelector(`.orbital-box[data-subshell="${subName}"][data-box-index="${boxIdx}"]`);
+            if (box) box.classList.add('box-error');
+        }
+
+        function updateRuleBadge(badgeEl, cardEl, isValid) {
+            badgeEl.className = `rule-badge ${isValid ? 'badge-valid' : 'badge-invalid'}`;
+            badgeEl.textContent = isValid ? 'UYGUN' : 'İHLAL!';
+        }
+
+        function showToast(msg, isError) {
+            feedbackToast.innerHTML = msg;
+            if (isError) feedbackToast.classList.add('error');
+            else feedbackToast.classList.remove('error');
+        }
+
+        function selectElement(z) {
+            targetZ = z;
+            const el = ELEMENTS.find(item => item.z === z);
+            symbolBadge.textContent = el.symbol;
+            elementName.textContent = el.name;
+            atomicNumber.textContent = el.z;
+            targetElectronCount.textContent = el.z;
+            elementSelect.value = z;
+            resetOrbitals();
+        }
+
+        function resetOrbitals() {
+            SUBSHELLS.forEach(sub => {
+                orbitalState[sub.name] = Array.from({ length: sub.boxes }, () => []);
+            });
+            renderState();
+            evaluateRules();
+        }
+
+        function autoFillCorrectly() {
+            resetOrbitals();
+            let remaining = targetZ;
+            let isCr = (targetZ === 24);
+            let isCu = (targetZ === 29);
+
+            for (let sub of SUBSHELLS) {
+                if (remaining <= 0) break;
+                let fill = Math.min(remaining, sub.capacity);
+
+                if (sub.name === "4s" && (isCr || isCu)) fill = 1;
+                else if (sub.name === "3d" && isCr) fill = 5;
+                else if (sub.name === "3d" && isCu) fill = 10;
+
+                remaining -= fill;
+
+                for (let i = 0; i < fill; i++) {
+                    if (i < sub.boxes) {
+                        orbitalState[sub.name][i].push(1);
+                    } else {
+                        orbitalState[sub.name][i % sub.boxes].push(-1);
+                    }
+                }
+            }
+            renderState();
+            evaluateRules();
+        }
+
+        elementSelect.addEventListener('change', (e) => selectElement(parseInt(e.target.value)));
+        document.getElementById('resetBtn').addEventListener('click', resetOrbitals);
+        document.getElementById('autoFillBtn').addEventListener('click', autoFillCorrectly);
+
+        initApp();
+    </script>
+</body>
+</html>
